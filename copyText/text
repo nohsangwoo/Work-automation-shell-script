@@ -1,0 +1,20 @@
+#!/bin/bash
+
+
+#one.txt파일 생성
+touch one.txt
+#korea문자열을 two.txt에 저장
+echo korea > one.txt
+
+#two.txt 파일 생성
+touch two.txt
+#japan문자열을 two.txt에 저장
+echo japan > two.txt
+
+#one.txt파일 맨뒤에 two.txt파일의 내용을 삽입하고 one.txt에 저장
+cat two.txt >> one.txt
+
+
+#파일내용 맨뒤에 문자열 추가
+echo finished string >> one.txt
+

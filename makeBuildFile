@@ -1,0 +1,165 @@
+#!/bin/bash
+
+
+echo "1. 작업할 폴더명 입력"
+# get file name from user
+function GET_FILE_NAME(){
+	echo -e "작업할 폴더를 입력해주세요: c"
+	read FILE_NAME
+	echo "입력받은 폴더이름: $FILE_NAME"
+}
+GET_FILE_NAME
+
+
+# early return
+# check FILE_NAME
+function earlyReturn() {
+        if ! [ -e $FILE_NAME ]; then
+                echo "'$FILE_NAME' is doesnt exist"
+                echo "program exit, try again"
+                exit
+        else
+                echo "$FILE_NAME is exist"
+        fi
+}
+earlyReturn
+
+
+echo "--------------"
+echo "--------------"
+echo "2.  비디오헬프미? 고톡? 선택"
+echo "videohelp.me : 1"
+echo "gotalk.to : 아무 숫자 입력(꼭 숫자)"
+echo -e "숫자를 입력해주세요: c"
+read GET_KIND
+echo "YOU CHOSE THE  $GET_KIND"
+
+
+echo "-------------"
+echo "-------------"
+echo "3. S3업로드용인지 아닌지 확인"
+# S3에업로드하는 client용인지 물어보는것
+# IS_S3_VAR 값이 1이면 true 아니면 false
+function isS3() {
+	echo "S3업로드용인가요?"
+	echo -e "(맞으면 1  아니면 아무 숫자를 입력하세요): c"
+	read IS_S3_VAR
+
+	if [ ${IS_S3_VAR} -eq 1 ]; then
+		echo "S3업로드용"
+		echo "service-worker.js 변경까지만 작업이 진행됩니다."
+	else
+		echo "S3업로드용이 아닙니다."
+		echo "1. service-worker.js 내용추가"
+		echo "2. build=>dist 폴더이름 변경"
+		echo "3. 작업내용 압축(폴더명+오늘날짜)"
+	fi	
+} 
+isS3
+
+
+
+
+echo "----------"
+# copy for service-worker.js
+# $GET_KIND    => 1:videohelp.me // exceopt 1: gotalk
+if [ ${GET_KIND} -eq 1 ]; then
+	# 함수를``로 감싸면 반환값을 변수에 넣어줄수 있다
+        PRE_TEMP=`cat service_worker_videohelpme.txt`
+else
+        PRE_TEMP=`cat service_worker_gotalk.txt`
+fi
+echo "service-worker.js에 복사할 내용 변수저장 완료"
+echo "----------"
+
+
+# go to directory
+cd $FILE_NAME
+
+
+# build 폴더가 존재하면 삭제
+function isExistBuild(){
+	if [ -d build ]; then
+		echo "exist build directory"
+		rm -rf build
+		echo "successfully deleted directory"
+	else
+		echo "doesnt exist build directory"
+	fi
+}
+isExistBuild
+
+
+
+# dist 폴더가 존재하면 삭제
+function isExistDist() {
+	if [ -d dist ]; then
+		echo "exist dist directory"
+		rm -rf dist
+		echo "successfully deleted directory"
+	else
+		echo "doesnt exist dist directory"
+	fi
+}
+isExistDist
+
+
+
+# start build
+npm run build
+
+
+
+#go to build directory
+cd build
+
+
+#serviceWorker 작업 처리 해야함
+# service-worker.js의 맨끝내용(세미클론)을 콤마로 치환한다
+echo "service-worker.js ';' => ',' 교체 시작"
+SERVICE_WORKER_CONTENTS=`sed 's/.\{1\}$/,/' < service-worker.js`
+
+
+#echo "-----------------------------"
+#echo "$SERVICE_WORKER_CONTENTS"
+#echo "-----------------------------"
+echo "service-worker.js ';' => ',' 교체 완료" 
+
+# service-worker.js 파일에 덮어 씌우기
+echo $SERVICE_WORKER_CONTENTS > service-worker.js
+
+
+
+# 복사할 내용을 service-worker.js 맨 뒤에 붙여 넣는다
+echo $PRE_TEMP >> service-worker.js
+echo "service-worker.js에 콤마 이후 작업 내용 추가"
+
+
+# 작업이 끝나면 cd .. 로 상위 디렉토리로 이동
+cd ..
+
+
+# S3용이면 여기서 멈춘다
+if [ ${IS_S3_VAR} -eq 1 ]; then
+	echo "S3작업이 끝났습니다."
+	exit
+fi
+
+
+# S3용이 아니라면 이 후 작업 진행
+mv build dist
+echo "build 파일명을 dist로 변경완료 했습니다."
+
+
+# 압축을 위해 상위 디렉토리로 이동
+cd ..
+
+
+
+# 오늘날짜 변수에 저장(압축파일명을 위해)
+GET_TODAY=$(date "+%y%m%d")
+
+
+
+# 압축 시작
+tar -zcvf $FILE_NAME.$GET_TODAY.tar.gz $FILE_NAME

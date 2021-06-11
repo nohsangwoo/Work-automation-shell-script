@@ -1,0 +1,8 @@
+#!/bin/bash
+
+
+
+echo -p "enter a directory: " -i
+read word
+echo word
+

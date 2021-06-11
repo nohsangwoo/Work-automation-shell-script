@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# 같은 라인에서 입력 받을 경우 c 사용
+echo -e "한 단어를 입력하세요: c"
+read word
+echo "입력한 단어는 : $word"
+
+echo "-------------------"
+echo "-------------------"
+
+echo -e "두 단어를 입력하세요: c"
+read word1 word2
+echo "입력한 단어들: $word1 $word2"
+
+echo "-------------------"
+echo "-------------------"
+
+echo -e "아무거나 입력하세요: c"
+# 변수 없이 입력값을 받으면 예약변수인 $REPLY 사용
+read
+echo "입력된 단어들: $REPLY"
+
+echo "-------------------"
+echo "-------------------"
+
+echo -e "배열로 입력받습니다: "
+# -a 파라미터는 입력값들을 배열로 저장
+read -a words
+echo "입력된 단어들: ${words[0]}, ${words[1]}, ${words[2]}"
+
+
+FILE_NAME=secret
+echo "will create" $FILE_NAME "variable"
+
+if [ -e $FILE_NAME.txt ]; then
+	echo "file exist so I will delete that and make again this file"
+	rm $FILE_NAME.txt
+	echo MAKE a some text file when already exist file  > $FILE_NAME.txt
+else
+	echo "file doesnt exist so Just create text file!"
+	echo MAKE a some text file when doesnt exist file > $FILE_NAME.txt 
+fi
+

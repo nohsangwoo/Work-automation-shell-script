@@ -1,0 +1,22 @@
+#!/bin/bash
+
+function get_text() {
+
+	echo -e "파일명을 입력해주세요: c"
+	read FILE_NAME
+	echo "입력받은 파일명은: $FILE_NAME"
+
+	if [ -e $FILE_NAME ]; then
+		echo "$FILE_NAME is exist"
+		cat $FILE_NAME
+		# 정규식 이용하여 맨 마지막 두개의 문자를 $FILE_NAME으로 치환한다
+		text_var=`sed 's/.\{2\}$/c/' $FILE_NAME`
+	fi
+}
+
+get_text
+
+# 정해진 포맷으로(특히 여러줄로 구성된경우) 출력하기위해서
+echo "$text_var"
+echo $text_var > PP.txt
+

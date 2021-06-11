@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# bak란 폴더가 있는지 조건문
+if ! [ -d bak ]; then
+	mkdir bak
+fi
+cp *.log bak
